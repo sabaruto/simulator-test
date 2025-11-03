@@ -1,0 +1,36 @@
+# This diagram describes how we'll be adding time and adding objects
+# to our current system
+
+# This class works to create and monitor
+# the Window
+wm: WindowManager {
+    shape: class
+    -window: Window
+    -objectManager: ObjectManager
+    -initTime: Time
+    -frameEndTime: Time
+    -frameStartTime: Time
+    +start(): void
+    +end(): void
+    +setFrameRate(int framesPerSecond): void
+}
+
+# This class manages all objects in a scene
+# Finding out 
+om: ObjectManager {
+    shape: class
+    -objects: "[]*object"
+    -cv: Canvas
+    +getObjects(): "[]object"
+    +moveObjects(Time physTime): void
+    +drawObjects(): void
+    +getObjectsInArea(pos Position, radius Int)
+}
+
+obj: Object {
+    shape: class
+    -position: Position
+    +getPosition(): Position
+    +draw(): void
+    -move(Time physTime): void
+}
