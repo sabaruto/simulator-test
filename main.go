@@ -1,26 +1,29 @@
 package main
 
 import (
+	"flag"
+
 	"github.com/sabaruto/simulator-test/internal/common"
 	"github.com/sabaruto/simulator-test/internal/objects"
 	windowmanager "github.com/sabaruto/simulator-test/internal/window-manager"
 )
 
+var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to `file`")
+var memprofile = flag.String("memprofile", "", "write memory profile to `file`")
+
 func main() {
+	flag.Parse()
+
+	manageCpuProfiler(*cpuprofile)
+	manageMemProfiler(*memprofile)
+
+	// objs := animations.CreateTowerAnimation()
 	objs := &[]common.Object{
-		objects.NewDot(
-			common.Position{X: 500, Y: 500},
-			50,
-		),
-		objects.NewDot(
-			common.Position{X: 600, Y: 600},
-			50,
-		),
-		objects.NewTower(
-			common.Position{X: 400, Y: 400},
-			0,
-			100,
-		),
+		objects.NewDotAgentBuilder().
+			Position(400, 400).
+			Radius(30).
+			Colour("#808080").
+			Build(),
 	}
 
 	wm := windowmanager.AnimatedWindowManager{
@@ -30,6 +33,6 @@ func main() {
 		Debug:           true,
 	}
 
-	wm.SetFrameRate(60)
+	wm.SetFrameRate(120)
 	wm.Start(objs)
 }

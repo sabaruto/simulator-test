@@ -1,6 +1,7 @@
 package common
 
 import (
+	"sort"
 	"time"
 
 	"github.com/tfriedel6/canvas"
@@ -12,6 +13,11 @@ type ObjectManager struct {
 }
 
 func NewObjectManager(canvas *canvas.Canvas, objects *[]Object) *ObjectManager {
+	// TODO: Update ordering w/ z values
+	sort.Slice(*objects, func(i, j int) bool {
+		return (*objects)[i].GetPosition().Y < (*objects)[j].GetPosition().Y
+	})
+
 	objectManager := &ObjectManager{
 		canvas:  canvas,
 		objects: objects,
