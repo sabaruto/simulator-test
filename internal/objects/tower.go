@@ -4,6 +4,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/quartercastle/vector"
 	"github.com/sabaruto/simulator-test/internal/common"
 )
 
@@ -24,8 +25,8 @@ func (t Tower) Draw() {
 
 	common.NewRectBuilder().
 		Canvas(cv).
-		X(t.position.X).
-		Y(t.position.Y - t.currentHeight).
+		X(t.position.X()).
+		Y(t.position.Y() - t.currentHeight).
 		Width(t.width).
 		Height(t.depth + t.currentHeight).
 		FillColour("#363636ff").
@@ -34,8 +35,8 @@ func (t Tower) Draw() {
 
 	common.NewRectBuilder().
 		Canvas(cv).
-		X(t.position.X).
-		Y(t.position.Y - t.currentHeight).
+		X(t.position.X()).
+		Y(t.position.Y() - t.currentHeight).
 		Width(t.width).
 		Height(t.depth).
 		FillColour("#575757ff").
@@ -66,7 +67,7 @@ func (t *Tower) Move(duration time.Duration) {
 }
 
 type TowerBuilder struct {
-	position            common.Position
+	position            vector.Vector
 	width               float64
 	depth               float64
 	minHeight           float64
@@ -80,7 +81,7 @@ func NewTowerBuilder() *TowerBuilder {
 	return &TowerBuilder{}
 }
 
-func (tb *TowerBuilder) Position(position common.Position) *TowerBuilder {
+func (tb *TowerBuilder) Position(position vector.Vector) *TowerBuilder {
 	tb.position = position
 	return tb
 }

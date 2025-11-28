@@ -81,7 +81,7 @@ func (s AnimatedWindowManager) drawDebugMetrics() {
 
 	canvas := s.objectManager.GetCanvas()
 	canvas.SetFillStyle("#FFF")
-	canvas.SetFont("Righteous-Regular.ttf", 20)
+	canvas.SetFont("assets/Righteous-Regular.ttf", 20)
 	canvas.FillText(fmt.Sprintf("FPS: %.0f", s.window.FPS()), 20, 30)
 	canvas.FillText(fmt.Sprintf("Draw Rate: %d", s.frameRate), 20, 50)
 }

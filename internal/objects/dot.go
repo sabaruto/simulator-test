@@ -4,7 +4,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/sabaruto/simulator-test/internal/common"
+	"github.com/quartercastle/vector"
 )
 
 type Dot struct {
@@ -12,7 +12,7 @@ type Dot struct {
 	radius float64
 }
 
-func NewDot(position common.Position, radius float64) *Dot {
+func NewDot(position vector.Vector, radius float64) *Dot {
 	return &Dot{
 		Base: Base{
 			position: position,
@@ -30,8 +30,8 @@ func (d Dot) Draw() {
 	cv := d.GetCanvas()
 	cv.SetFillStyle(128, 128, 128)
 	cv.BeginPath()
-	cv.MoveTo(d.position.X, d.position.Y)
-	cv.Arc(d.position.X, d.position.Y, d.radius, 0, 2*math.Pi, false)
+	cv.MoveTo(d.position.X(), d.position.Y())
+	cv.Arc(d.position.X(), d.position.Y(), d.radius, 0, 2*math.Pi, false)
 	cv.ClosePath()
 	cv.Fill()
 }

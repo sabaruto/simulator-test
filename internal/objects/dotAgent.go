@@ -4,18 +4,17 @@ import (
 	"math"
 	"time"
 
-	"github.com/sabaruto/simulator-test/internal/common"
+	"github.com/quartercastle/vector"
 )
 
 type DotAgent struct {
 	Base
-	radius float64
-	colour string
-	// TODO: Create an angle type to quickly get cos / sin of values
-	orientation float64
+	radius   float64
+	colour   string
+	velocity vector.Vector
 }
 
-func NewDotAgent(position common.Position, radius float64) *DotAgent {
+func NewDotAgent(position vector.Vector, radius float64) *DotAgent {
 	return &DotAgent{
 		Base: Base{
 			position: position,
@@ -25,54 +24,63 @@ func NewDotAgent(position common.Position, radius float64) *DotAgent {
 }
 
 func (d *DotAgent) Move(duration time.Duration) {
-	d.orientation += math.Pi * duration.Minutes() * 4
+	d.velocity = d.velocity.Rotate(math.Pi * duration.Minutes() * 4)
 }
 
 func (d DotAgent) Draw() {
-	cv := d.GetCanvas()
-
 	// Draw dot
-	cv.SetFillStyle(d.colour)
-	cv.BeginPath()
-	cv.MoveTo(d.position.X, d.position.Y)
-	cv.Arc(d.position.X, d.position.Y, d.radius, 0, 2*math.Pi, false)
-	cv.ClosePath()
-	cv.Fill()
+	d.DrawDot()
 
 	// Draw orientation pointer
+	d.drawPointer()
+}
+
+func (d DotAgent) DrawDot() {
+	cv := d.GetCanvas()
+	cv.SetFillStyle(d.colour)
+	cv.BeginPath()
+	cv.MoveTo(d.position.X(), d.position.Y())
+	cv.Arc(d.position.X(), d.position.Y(), d.radius, 0, 2*math.Pi, false)
+	cv.ClosePath()
+	cv.Fill()
+}
+
+func (d DotAgent) drawPointer() {
+	cv := d.GetCanvas()
 	arrowOffset := d.radius * 1.4
 	arrowSize := d.radius / 2
 
-	arrowPosition := common.Position{
-		X: d.position.X + math.Cos(d.orientation)*arrowOffset,
-		Y: d.position.Y + math.Sin(d.orientation)*arrowOffset,
-	}
+	arrowVector := d.velocity.Scale(arrowOffset)
+	perpAngle := d.velocity.Rotate(math.Pi / 2)
+	arrowPosition := d.position.Add(arrowVector)
 
 	cv.BeginPath()
+
 	cv.MoveTo(
-		arrowPosition.X,
-		arrowPosition.Y,
+		arrowPosition.X(),
+		arrowPosition.Y(),
 	)
 	cv.LineTo(
-		d.position.X+(math.Cos(d.orientation)*arrowOffset)+math.Cos(d.orientation+math.Pi/2)*(arrowSize/2),
-		d.position.Y+(math.Sin(d.orientation)*arrowOffset)+math.Sin(d.orientation+math.Pi/2)*(arrowSize/2),
+		arrowPosition.X()+perpAngle.X()*(arrowSize/2),
+		arrowPosition.Y()+perpAngle.Y()*(arrowSize/2),
 	)
 	cv.LineTo(
-		d.position.X+(math.Cos(d.orientation)*(arrowOffset+arrowSize)),
-		d.position.Y+(math.Sin(d.orientation)*(arrowOffset+arrowSize)),
+		d.position.X()+(d.velocity.X()*(arrowOffset+arrowSize)),
+		d.position.Y()+(d.velocity.Y()*(arrowOffset+arrowSize)),
 	)
 	cv.LineTo(
-		d.position.X+(math.Cos(d.orientation)*arrowOffset)-math.Cos(d.orientation+math.Pi/2)*(arrowSize/2),
-		d.position.Y+(math.Sin(d.orientation)*arrowOffset)-math.Sin(d.orientation+math.Pi/2)*(arrowSize/2),
+		arrowPosition.X()-perpAngle.X()*(arrowSize/2),
+		arrowPosition.Y()-perpAngle.Y()*(arrowSize/2),
 	)
 	cv.ClosePath()
 	cv.Fill()
 }
 
 type DotAgentBuilder struct {
-	position common.Position
+	position vector.Vector
 	radius   float64
 	colour   string
+	velocity vector.Vector
 }
 
 func NewDotAgentBuilder() *DotAgentBuilder {
@@ -80,7 +88,7 @@ func NewDotAgentBuilder() *DotAgentBuilder {
 }
 
 func (dab *DotAgentBuilder) Position(x float64, y float64) *DotAgentBuilder {
-	dab.position = common.Position{X: x, Y: y}
+	dab.position = vector.Vector{x, y}
 	return dab
 }
 
@@ -94,13 +102,22 @@ func (dab *DotAgentBuilder) Colour(colour string) *DotAgentBuilder {
 	return dab
 }
 
+func (dab *DotAgentBuilder) Angle(angle float64) *DotAgentBuilder {
+	dab.velocity = vector.Vector{1, 0}.Rotate(angle)
+	return dab
+}
+
 func (dab *DotAgentBuilder) Build() *DotAgent {
+	if dab.velocity == nil {
+		dab.velocity = vector.Vector{1, 0}
+	}
+
 	return &DotAgent{
 		Base: Base{
 			position: dab.position,
 		},
-		radius:      dab.radius,
-		colour:      dab.colour,
-		orientation: 0,
+		radius:   dab.radius,
+		colour:   dab.colour,
+		velocity: dab.velocity,
 	}
 }

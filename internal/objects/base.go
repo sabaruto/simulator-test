@@ -1,17 +1,18 @@
 package objects
 
 import (
+	"github.com/quartercastle/vector"
 	"github.com/sabaruto/simulator-test/internal/common"
 
 	"github.com/tfriedel6/canvas"
 )
 
 type Base struct {
-	position      common.Position
+	position      vector.Vector
 	objectManager *common.ObjectManager
 }
 
-func (b Base) GetPosition() common.Position {
+func (b Base) GetPosition() vector.Vector {
 	return b.position
 }
 

@@ -4,6 +4,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/quartercastle/vector"
 	"github.com/tfriedel6/canvas"
 )
 
@@ -15,7 +16,7 @@ type ObjectManager struct {
 func NewObjectManager(canvas *canvas.Canvas, objects *[]Object) *ObjectManager {
 	// TODO: Update ordering w/ z values
 	sort.Slice(*objects, func(i, j int) bool {
-		return (*objects)[i].GetPosition().Y < (*objects)[j].GetPosition().Y
+		return (*objects)[i].GetPosition().Y() < (*objects)[j].GetPosition().Y()
 	})
 
 	objectManager := &ObjectManager{
@@ -46,11 +47,11 @@ func (o ObjectManager) DrawObjects() {
 	}
 }
 
-func (o ObjectManager) GetObjectsInArea(position Position, radius float64) []*Object {
+func (o ObjectManager) GetObjectsInArea(position vector.Vector, radius float64) []*Object {
 	var returnSlice []*Object
 
 	for _, object := range *o.objects {
-		if object.GetPosition().Distance(position) < radius {
+		if Distance(object.GetPosition(), position) < radius {
 			returnSlice = append(returnSlice, &object)
 		}
 	}
