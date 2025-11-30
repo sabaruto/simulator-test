@@ -20,9 +20,19 @@ func main() {
 	// objs := animations.CreateTowerAnimation()
 	objs := &[]common.Object{
 		objects.NewDotAgentBuilder().
-			Position(400, 400).
+			Position(200, 400).
 			Radius(30).
 			Colour("#808080").
+			Build(),
+		objects.NewDotAgentBuilder().
+			Position(600, 400).
+			Radius(30).
+			Colour("#808080").
+			Build(),
+		objects.NewDotAgentBuilder().
+			Position(400, 400).
+			Radius(50).
+			Colour("#008080").
 			Build(),
 	}
 
@@ -33,6 +43,6 @@ func main() {
 		Debug:           true,
 	}
 
-	wm.SetFrameRate(120)
+	wm.SetFrameRate(240)
 	wm.Start(objs)
 }

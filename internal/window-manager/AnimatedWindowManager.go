@@ -68,10 +68,10 @@ func (s AnimatedWindowManager) drawDuration() time.Duration {
 }
 
 func (s AnimatedWindowManager) drawBackground() {
-	canvas := s.objectManager.GetCanvas()
+	cv := s.objectManager.GetCanvas()
 
-	canvas.SetFillStyle(s.BackgroundColor)
-	canvas.FillRect(0, 0, float64(s.Width), float64(s.Height))
+	cv.SetFillStyle(s.BackgroundColor)
+	cv.FillRect(0, 0, float64(s.Width), float64(s.Height))
 }
 
 func (s AnimatedWindowManager) drawDebugMetrics() {
@@ -79,11 +79,11 @@ func (s AnimatedWindowManager) drawDebugMetrics() {
 		return
 	}
 
-	canvas := s.objectManager.GetCanvas()
-	canvas.SetFillStyle("#FFF")
-	canvas.SetFont("assets/Righteous-Regular.ttf", 20)
-	canvas.FillText(fmt.Sprintf("FPS: %.0f", s.window.FPS()), 20, 30)
-	canvas.FillText(fmt.Sprintf("Draw Rate: %d", s.frameRate), 20, 50)
+	cv := s.objectManager.GetCanvas()
+	cv.SetFillStyle("#FFF")
+	cv.SetFont("assets/Righteous-Regular.ttf", 20)
+	cv.FillText(fmt.Sprintf("FPS: %.0f", s.window.FPS()), 20, 30)
+	cv.FillText(fmt.Sprintf("Draw Rate: %d", s.frameRate), 20, 50)
 }
 
 func (s *AnimatedWindowManager) SetFrameRate(frameRate int) {

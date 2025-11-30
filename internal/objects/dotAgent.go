@@ -1,10 +1,12 @@
 package objects
 
 import (
+	"fmt"
 	"math"
 	"time"
 
 	"github.com/quartercastle/vector"
+	"github.com/sabaruto/simulator-test/internal/common"
 )
 
 type DotAgent struct {
@@ -12,6 +14,7 @@ type DotAgent struct {
 	radius   float64
 	colour   string
 	velocity vector.Vector
+	vision   common.Vision
 }
 
 func NewDotAgent(position vector.Vector, radius float64) *DotAgent {
@@ -24,10 +27,52 @@ func NewDotAgent(position vector.Vector, radius float64) *DotAgent {
 }
 
 func (d *DotAgent) Move(duration time.Duration) {
-	d.velocity = d.velocity.Rotate(math.Pi * duration.Minutes() * 4)
+	// TODO: Move Ray maths to vision + update via observe
+	// d.Observe()
+	d.velocity = d.velocity.Rotate(math.Pi * duration.Minutes() * 8)
+}
+
+func (d *DotAgent) Observe() {
+	panic("unimplemented")
+}
+
+func (d DotAgent) ReceiveRay(rayPosition vector.Vector, rayDirection vector.Vector) (intersectPoint *vector.Vector, colour *string) {
+	rayDirection = rayDirection.Unit()
+	intersections := common.GetCircleIntersections(rayPosition, rayDirection, d.position, d.radius)
+
+	// Check an intersection point is found
+	if intersections == nil {
+		return nil, nil
+	}
+
+	var closestPoint *vector.Vector
+	smallestDistance := math.Inf(1)
+
+	for _, intersectPoint := range *intersections {
+		intersectDistance := intersectPoint.Sub(rayPosition).X() / rayDirection.X()
+
+		if math.IsNaN(intersectDistance) {
+			intersectDistance = intersectPoint.Sub(rayPosition).Y() / rayDirection.Y()
+		}
+
+		if intersectDistance > 0 && intersectDistance < smallestDistance {
+			closestPoint = &intersectPoint
+			smallestDistance = intersectDistance
+		}
+	}
+
+	if closestPoint == nil {
+		return nil, nil
+	}
+
+	return closestPoint, &d.colour
 }
 
 func (d DotAgent) Draw() {
+	if d.debug {
+		d.drawVision()
+	}
+
 	// Draw dot
 	d.DrawDot()
 
@@ -55,11 +100,7 @@ func (d DotAgent) drawPointer() {
 	arrowPosition := d.position.Add(arrowVector)
 
 	cv.BeginPath()
-
-	cv.MoveTo(
-		arrowPosition.X(),
-		arrowPosition.Y(),
-	)
+	cv.MoveTo(arrowPosition.X(), arrowPosition.Y())
 	cv.LineTo(
 		arrowPosition.X()+perpAngle.X()*(arrowSize/2),
 		arrowPosition.Y()+perpAngle.Y()*(arrowSize/2),
@@ -76,11 +117,37 @@ func (d DotAgent) drawPointer() {
 	cv.Fill()
 }
 
+func (d DotAgent) drawVision() {
+	cv := d.GetCanvas()
+	for rayAngle := d.velocity.Angle() - (d.vision.Angle / 2); rayAngle < d.velocity.Angle()+(d.vision.Angle/2); rayAngle += math.Pi / 180 {
+		cv.BeginPath()
+		cv.MoveTo(d.position.X(), d.position.Y())
+		rayEndPosition, rayColour := d.objectManager.SendRay(d.position, vector.Vector{1, 0}.Rotate(rayAngle), []int64{d.GetID()})
+
+		if rayEndPosition == nil || rayEndPosition.Sub(d.position).Magnitude() > d.vision.Distance {
+			cv.SetStrokeStyle(128, 0, 0)
+			rayEnd := vector.Vector{1, 0}.Rotate(rayAngle).Scale(d.vision.Distance).Add(d.position)
+			cv.LineTo(rayEnd.X(), rayEnd.Y())
+			cv.Stroke()
+		} else {
+			// Checks if it's within vision distance
+			cv.SetStrokeStyle(*rayColour)
+			cv.LineTo(rayEndPosition.X(), rayEndPosition.Y())
+			cv.Stroke()
+		}
+	}
+}
+
+func (d DotAgent) String() string {
+	return fmt.Sprintf("Dot Agent(id: %d, position: %v, radius: %f, colour: %s)", d.GetID(), d.GetPosition(), d.radius, d.colour)
+}
+
 type DotAgentBuilder struct {
 	position vector.Vector
 	radius   float64
 	colour   string
 	velocity vector.Vector
+	vision   common.Vision
 }
 
 func NewDotAgentBuilder() *DotAgentBuilder {
@@ -107,17 +174,31 @@ func (dab *DotAgentBuilder) Angle(angle float64) *DotAgentBuilder {
 	return dab
 }
 
+func (dab *DotAgentBuilder) Vision(vision common.Vision) *DotAgentBuilder {
+	dab.vision = vision
+	return dab
+}
+
 func (dab *DotAgentBuilder) Build() *DotAgent {
 	if dab.velocity == nil {
 		dab.velocity = vector.Vector{1, 0}
 	}
 
+	if dab.vision.Distance == 0 {
+		dab.vision = common.Vision{
+			Angle:    math.Pi / 3,
+			Distance: 160,
+		}
+	}
+
 	return &DotAgent{
 		Base: Base{
 			position: dab.position,
+			debug:    true,
 		},
 		radius:   dab.radius,
 		colour:   dab.colour,
 		velocity: dab.velocity,
+		vision:   dab.vision,
 	}
 }
