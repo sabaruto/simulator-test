@@ -3,6 +3,7 @@ package animations
 import (
 	"time"
 
+	"github.com/quartercastle/vector"
 	"github.com/sabaruto/simulator-test/internal/common"
 	"github.com/sabaruto/simulator-test/internal/objects"
 )
@@ -35,7 +36,7 @@ func CreateTowerAnimation() *[]common.Object {
 			*objs = append(
 				*objs,
 				towerBuilder.
-					Position(common.Position{X: float64(x), Y: float64(y)}).
+					Position(vector.Vector{float64(x), float64(y)}).
 					StartPercentage(startPercentage).
 					Build(),
 			)

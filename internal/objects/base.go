@@ -10,30 +10,30 @@ import (
 	"github.com/tfriedel6/canvas"
 )
 
-type Base struct {
+type BaseObject struct {
 	position      vector.Vector
 	objectManager *common.ObjectManager
-	debug         bool
+	debugToggles  *common.DebugToggle
 	id            *int64
 }
 
-func (b Base) GetPosition() vector.Vector {
+func (b BaseObject) GetPosition() vector.Vector {
 	return b.position
 }
 
-func (b Base) GetCanvas() *canvas.Canvas {
+func (b BaseObject) GetCanvas() *canvas.Canvas {
 	return b.objectManager.GetCanvas()
 }
 
-func (b *Base) SetObjectManager(objectManager *common.ObjectManager) {
+func (b *BaseObject) SetObjectManager(objectManager *common.ObjectManager) {
 	b.objectManager = objectManager
 }
 
-func (b Base) ReceiveRay(rayPosition vector.Vector, rayDirection vector.Vector) (intersectPoint *vector.Vector, colour *string) {
+func (b BaseObject) ReceiveRay(rayPosition vector.Vector, rayDirection vector.Vector) (intersectPoint *vector.Vector, colour *string) {
 	return nil, nil
 }
 
-func (b *Base) GetID() int64 {
+func (b *BaseObject) GetID() int64 {
 	if b.id == nil {
 		newId := rand.Int63()
 
@@ -43,10 +43,10 @@ func (b *Base) GetID() int64 {
 	return *b.id
 }
 
-func (b Base) Equal(other common.Object) bool {
+func (b BaseObject) Equal(other common.Object) bool {
 	return b.GetID() == other.GetID()
 }
 
-func (b Base) String() string {
+func (b BaseObject) String() string {
 	return fmt.Sprintf("Base(id: %d, position: %v)", b.GetID(), b.GetPosition())
 }

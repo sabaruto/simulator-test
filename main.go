@@ -17,22 +17,27 @@ func main() {
 	manageCpuProfiler(*cpuprofile)
 	manageMemProfiler(*memprofile)
 
+	debugToggles := &common.DebugToggle{}
+
 	// objs := animations.CreateTowerAnimation()
 	objs := &[]common.Object{
 		objects.NewDotAgentBuilder().
 			Position(200, 400).
 			Radius(30).
 			Colour("#808080").
+			DebugToggles(debugToggles).
 			Build(),
 		objects.NewDotAgentBuilder().
 			Position(600, 400).
 			Radius(30).
 			Colour("#808080").
+			DebugToggles(debugToggles).
 			Build(),
 		objects.NewDotAgentBuilder().
 			Position(400, 400).
 			Radius(50).
 			Colour("#008080").
+			DebugToggles(debugToggles).
 			Build(),
 	}
 
@@ -40,9 +45,9 @@ func main() {
 		Width:           1000,
 		Height:          1000,
 		BackgroundColor: "#242E24",
-		Debug:           true,
+		DebugToggles:    debugToggles,
 	}
 
-	wm.SetFrameRate(240)
+	wm.SetFrameRate(120)
 	wm.Start(objs)
 }

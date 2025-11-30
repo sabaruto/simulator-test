@@ -10,7 +10,7 @@ import (
 
 type AnimatedWindowManager struct {
 	BackgroundColor string
-	Debug           bool
+	DebugToggles    *common.DebugToggle
 	Height          int
 	Width           int
 	frameRate       int
@@ -26,6 +26,32 @@ func NewAnimatedWindowManager(width int, height int) *AnimatedWindowManager {
 	}
 }
 
+func (s *AnimatedWindowManager) KeyUp(scancode int, rn rune, name string) {
+	if s.DebugToggles.VerboseLogging() {
+		fmt.Println("Key Up event")
+	}
+
+	if name == "KeyD" {
+		s.DebugToggles.SetWindow(!s.DebugToggles.Window())
+		fmt.Println("Debug Window value set:", s.DebugToggles.Window())
+	}
+
+	if name == "KeyR" {
+		s.DebugToggles.SetRays(!s.DebugToggles.Rays())
+		fmt.Println("Debug Rays value set:", s.DebugToggles.Rays())
+	}
+
+	if name == "KeyA" {
+		s.DebugToggles.SetAgentMetrics(!s.DebugToggles.AgentMetrics())
+		fmt.Println("Debug Agent Metrics value set:", s.DebugToggles.AgentMetrics())
+	}
+
+	if name == "KeyV" {
+		s.DebugToggles.SetVerboseLogging(!s.DebugToggles.VerboseLogging())
+		fmt.Println("Debug Verbose Logging value set:", s.DebugToggles.VerboseLogging())
+	}
+}
+
 func (s *AnimatedWindowManager) Start(objects *[]common.Object) {
 	lastFrameTime := time.Now()
 	lastDrawTime := time.Now()
@@ -34,6 +60,8 @@ func (s *AnimatedWindowManager) Start(objects *[]common.Object) {
 	if err != nil {
 		panic(err)
 	}
+
+	window.KeyUp = s.KeyUp
 
 	s.window = window
 	s.objectManager = common.NewObjectManager(canvas, objects)
@@ -75,7 +103,7 @@ func (s AnimatedWindowManager) drawBackground() {
 }
 
 func (s AnimatedWindowManager) drawDebugMetrics() {
-	if !s.Debug {
+	if !s.DebugToggles.Window() {
 		return
 	}
 

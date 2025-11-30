@@ -9,7 +9,7 @@ import (
 )
 
 type Tower struct {
-	Base
+	BaseObject
 	width                      float64
 	depth                      float64
 	minHeight                  float64
@@ -138,7 +138,7 @@ func (tb *TowerBuilder) StartMovingUp() *TowerBuilder {
 
 func (tb *TowerBuilder) Build() *Tower {
 	return &Tower{
-		Base: Base{
+		BaseObject: BaseObject{
 			position: tb.position,
 		},
 		width:                      tb.width,
