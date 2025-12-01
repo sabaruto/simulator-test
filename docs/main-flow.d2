@@ -1,0 +1,47 @@
+wm: |md
+	# Window Manager
+
+	Create and manage sdlcanvas and window
+| {
+	shape: rectangle
+}
+
+om: |md
+	# Object Manager
+
+	Monitors objects and draws to them to
+	the canvas
+|{
+	shape: rectangle
+}
+
+ob: |md
+	# Object
+
+	An item with data that can be drawn
+	to the sdlcanvas
+|{
+	shape: rectangle
+	ag: |md
+		# Agent
+
+		An object that tries to keep the 
+		internal state happy by reading the
+		external state and choosing an action
+	|{
+		shape: rectangle
+	}
+} 
+
+shapes: |md
+	# Shapes
+
+	A collection of functions that use
+	`canvas` to draw an image
+|{
+	shape: rectangle
+}
+
+wm -> om: Get Object shapes to draw
+om -> ob: Calls the draw functions
+ob -> shapes: Calls the draw shape functions
