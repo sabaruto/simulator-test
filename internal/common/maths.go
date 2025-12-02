@@ -47,3 +47,7 @@ func GetCircleIntersections(
 
 	return &[]vector.Vector{intersectOne, intersectTwo}
 }
+
+func Distance(a, b vector.Vector) float64 {
+	return b.Sub(a).Magnitude()
+}

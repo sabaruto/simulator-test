@@ -1,4 +1,4 @@
-package main
+package debug
 
 import (
 	"log"
@@ -7,7 +7,7 @@ import (
 	"runtime/pprof"
 )
 
-func manageCpuProfiler(cpuProfileName string) {
+func ManageCpuProfiler(cpuProfileName string) {
 	if cpuProfileName == "" {
 		return
 	}
@@ -24,7 +24,7 @@ func manageCpuProfiler(cpuProfileName string) {
 	defer pprof.StopCPUProfile()
 }
 
-func manageMemProfiler(memProfileName string) {
+func ManageMemProfiler(memProfileName string) {
 	if memProfileName == "" {
 		return
 	}

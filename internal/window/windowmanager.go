@@ -1,20 +1,21 @@
-package windowmanager
+package window
 
 import (
 	"fmt"
 	"time"
 
 	"github.com/sabaruto/simulator-test/internal/common"
+	"github.com/sabaruto/simulator-test/internal/objects"
 	"github.com/tfriedel6/canvas/sdlcanvas"
 )
 
 type AnimatedWindowManager struct {
 	BackgroundColor string
-	DebugToggles    *common.DebugToggle
+	DebugManager    common.DebugManager
 	Height          int
 	Width           int
 	frameRate       int
-	objectManager   *common.ObjectManager
+	objectManager   common.ObjectManager
 	window          *sdlcanvas.Window
 }
 
@@ -27,32 +28,23 @@ func NewAnimatedWindowManager(width int, height int) *AnimatedWindowManager {
 }
 
 func (s *AnimatedWindowManager) KeyUp(scancode int, rn rune, name string) {
-	if s.DebugToggles.VerboseLogging() {
-		fmt.Println("Key Up event")
-	}
-
 	if name == "KeyD" {
-		s.DebugToggles.SetWindow(!s.DebugToggles.Window())
-		fmt.Println("Debug Window value set:", s.DebugToggles.Window())
+		s.DebugManager.SetWindowState(!s.DebugManager.GetWindowState())
+		fmt.Println("Debug Window value set:", s.DebugManager.GetRaysState())
 	}
 
 	if name == "KeyR" {
-		s.DebugToggles.SetRays(!s.DebugToggles.Rays())
-		fmt.Println("Debug Rays value set:", s.DebugToggles.Rays())
+		s.DebugManager.SetRaysState(!s.DebugManager.GetRaysState())
+		fmt.Println("Debug Rays value set:", s.DebugManager.GetRaysState())
 	}
 
 	if name == "KeyA" {
-		s.DebugToggles.SetAgentMetrics(!s.DebugToggles.AgentMetrics())
-		fmt.Println("Debug Agent Metrics value set:", s.DebugToggles.AgentMetrics())
-	}
-
-	if name == "KeyV" {
-		s.DebugToggles.SetVerboseLogging(!s.DebugToggles.VerboseLogging())
-		fmt.Println("Debug Verbose Logging value set:", s.DebugToggles.VerboseLogging())
+		s.DebugManager.SetAgentMetricsState(!s.DebugManager.GetAgentMetricsState())
+		fmt.Println("Debug Agent Metrics value set:", s.DebugManager.GetAgentMetricsState())
 	}
 }
 
-func (s *AnimatedWindowManager) Start(objects *[]common.Object) {
+func (s *AnimatedWindowManager) Start(objectList *[]common.Object) {
 	lastFrameTime := time.Now()
 	lastDrawTime := time.Now()
 
@@ -64,7 +56,7 @@ func (s *AnimatedWindowManager) Start(objects *[]common.Object) {
 	window.KeyUp = s.KeyUp
 
 	s.window = window
-	s.objectManager = common.NewObjectManager(canvas, objects)
+	s.objectManager = objects.NewObjectManager(canvas, objectList)
 
 	defer window.Destroy()
 
@@ -103,7 +95,7 @@ func (s AnimatedWindowManager) drawBackground() {
 }
 
 func (s AnimatedWindowManager) drawDebugMetrics() {
-	if !s.DebugToggles.Window() {
+	if !s.DebugManager.GetWindowState() {
 		return
 	}
 

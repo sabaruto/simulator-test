@@ -1,5 +1,6 @@
 package common
 
+// TODO: Move sight to agent/observe package
 import (
 	"math"
 )

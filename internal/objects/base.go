@@ -12,8 +12,8 @@ import (
 
 type BaseObject struct {
 	position      vector.Vector
-	objectManager *common.ObjectManager
-	debugToggles  *common.DebugToggle
+	objectManager common.ObjectManager
+	debugGetter   common.DebugGetter
 	id            *int64
 }
 
@@ -25,7 +25,7 @@ func (b BaseObject) GetCanvas() *canvas.Canvas {
 	return b.objectManager.GetCanvas()
 }
 
-func (b *BaseObject) SetObjectManager(objectManager *common.ObjectManager) {
+func (b *BaseObject) SetObjectManager(objectManager common.ObjectManager) {
 	b.objectManager = objectManager
 }
 

@@ -1,4 +1,4 @@
-package common
+package objects
 
 import (
 	"math"
@@ -6,21 +6,22 @@ import (
 	"time"
 
 	"github.com/quartercastle/vector"
+	"github.com/sabaruto/simulator-test/internal/common"
 	"github.com/tfriedel6/canvas"
 )
 
-type ObjectManager struct {
+type objectManager struct {
 	canvas  *canvas.Canvas
-	objects *[]Object
+	objects *[]common.Object
 }
 
-func NewObjectManager(canvas *canvas.Canvas, objects *[]Object) *ObjectManager {
+func NewObjectManager(canvas *canvas.Canvas, objects *[]common.Object) common.ObjectManager {
 	// TODO: Update ordering w/ z values
 	sort.Slice(*objects, func(i, j int) bool {
 		return (*objects)[i].GetPosition().Y() < (*objects)[j].GetPosition().Y()
 	})
 
-	objectManager := &ObjectManager{
+	objectManager := &objectManager{
 		canvas:  canvas,
 		objects: objects,
 	}
@@ -32,27 +33,27 @@ func NewObjectManager(canvas *canvas.Canvas, objects *[]Object) *ObjectManager {
 	return objectManager
 }
 
-func (o ObjectManager) GetObjects() *[]Object {
+func (o objectManager) GetObjects() *[]common.Object {
 	return o.objects
 }
 
-func (o ObjectManager) MoveObjects(diffTime time.Duration) {
+func (o objectManager) MoveObjects(diffTime time.Duration) {
 	for _, object := range *o.objects {
 		object.Move(diffTime)
 	}
 }
 
-func (o ObjectManager) DrawObjects() {
+func (o objectManager) DrawObjects() {
 	for _, object := range *o.objects {
 		object.Draw()
 	}
 }
 
-func (o ObjectManager) GetObjectsInArea(position vector.Vector, radius float64) []*Object {
-	var returnSlice []*Object
+func (o objectManager) GetObjectsInArea(position vector.Vector, radius float64) []*common.Object {
+	var returnSlice []*common.Object
 
 	for _, object := range *o.objects {
-		if Distance(object.GetPosition(), position) < radius {
+		if common.Distance(object.GetPosition(), position) < radius {
 			returnSlice = append(returnSlice, &object)
 		}
 	}
@@ -60,7 +61,7 @@ func (o ObjectManager) GetObjectsInArea(position vector.Vector, radius float64) 
 }
 
 // TODO: Find a method to find a closest object via a ray of some kind
-func (o ObjectManager) SendRay(rayPosition vector.Vector, rayDirection vector.Vector, ignoreIDs []int64) (*vector.Vector, *string) {
+func (o objectManager) SendRay(rayPosition vector.Vector, rayDirection vector.Vector, ignoreIDs []int64) (*vector.Vector, *string) {
 	smallestDistance := math.Inf(1)
 	var intersectPoint *vector.Vector
 	var intersectColour *string
@@ -99,6 +100,6 @@ func (o ObjectManager) SendRay(rayPosition vector.Vector, rayDirection vector.Ve
 	return intersectPoint, intersectColour
 }
 
-func (o ObjectManager) GetCanvas() *canvas.Canvas {
+func (o objectManager) GetCanvas() *canvas.Canvas {
 	return o.canvas
 }

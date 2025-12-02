@@ -84,7 +84,7 @@ func (d *DotAgent) updateVision() {
 }
 
 func (d DotAgent) Draw() {
-	if d.debugToggles.Rays() {
+	if d.debugGetter.GetRaysState() {
 		d.drawVision()
 	}
 
@@ -94,7 +94,7 @@ func (d DotAgent) Draw() {
 	// Draw orientation pointer
 	d.drawPointer()
 
-	if d.debugToggles.AgentMetrics() {
+	if d.debugGetter.GetAgentMetricsState() {
 		d.drawAgentMetrics()
 	}
 }
@@ -181,12 +181,12 @@ func (d DotAgent) ExpandedString() string {
 }
 
 type DotAgentBuilder struct {
-	position     vector.Vector
-	radius       float64
-	colour       string
-	velocity     vector.Vector
-	vision       common.Sight
-	debugToggles *common.DebugToggle
+	position    vector.Vector
+	radius      float64
+	colour      string
+	velocity    vector.Vector
+	vision      common.Sight
+	debugClient common.DebugGetter
 }
 
 func NewDotAgentBuilder() *DotAgentBuilder {
@@ -218,8 +218,8 @@ func (dab *DotAgentBuilder) Vision(vision common.Sight) *DotAgentBuilder {
 	return dab
 }
 
-func (dab *DotAgentBuilder) DebugToggles(debugToggles *common.DebugToggle) *DotAgentBuilder {
-	dab.debugToggles = debugToggles
+func (dab *DotAgentBuilder) DebugClient(debugClient common.DebugGetter) *DotAgentBuilder {
+	dab.debugClient = debugClient
 	return dab
 }
 
@@ -235,14 +235,10 @@ func (dab *DotAgentBuilder) Build() *DotAgent {
 		}
 	}
 
-	if dab.debugToggles == nil {
-		dab.debugToggles = &common.DebugToggle{}
-	}
-
 	return &DotAgent{
 		BaseObject: BaseObject{
-			position:     dab.position,
-			debugToggles: dab.debugToggles,
+			position:    dab.position,
+			debugGetter: dab.debugClient,
 		},
 		internalState: *agent.NewInternalState(),
 		radius:        dab.radius,
