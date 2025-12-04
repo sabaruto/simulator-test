@@ -7,15 +7,18 @@ import (
 
 	"github.com/quartercastle/vector"
 	"github.com/sabaruto/simulator-test/internal/agent"
+	"github.com/sabaruto/simulator-test/internal/agent/observe"
 	"github.com/sabaruto/simulator-test/internal/common"
+	"github.com/sabaruto/simulator-test/internal/ray"
+	"github.com/sabaruto/simulator-test/internal/shapes"
 )
 
 type DotAgent struct {
-	BaseObject
+	object
 	internalState agent.InternalState
 	radius        float64
 	colour        string
-	velocity      vector.Vector
+	velocity      *vector.Vector
 	sight         common.Sight
 }
 
@@ -28,59 +31,28 @@ func (d *DotAgent) observe() {
 	d.updateVision()
 }
 
+func (d DotAgent) GetVelocity() vector.Vector {
+	return *d.velocity
+}
+
 func (d *DotAgent) act(diffTime time.Duration) {
 
-	d.velocity = d.velocity.Rotate(math.Pi * diffTime.Minutes() * 8)
+	*d.velocity = d.GetVelocity().Rotate(math.Pi * diffTime.Minutes() * 8)
 
 	d.internalState.UpdateState(diffTime)
 }
 
-func (d DotAgent) ReceiveRay(rayPosition vector.Vector, rayDirection vector.Vector) (intersectPoint *vector.Vector, colour *string) {
-	rayDirection = rayDirection.Unit()
-	intersections := common.GetCircleIntersections(rayPosition, rayDirection, d.position, d.radius)
-
-	// Check an intersection point is found
-	if intersections == nil {
-		return nil, nil
-	}
-
-	var closestPoint *vector.Vector
-	smallestDistance := math.Inf(1)
-
-	for _, intersectPoint := range *intersections {
-		intersectDistance := intersectPoint.Sub(rayPosition).X() / rayDirection.X()
-
-		if math.IsNaN(intersectDistance) {
-			intersectDistance = intersectPoint.Sub(rayPosition).Y() / rayDirection.Y()
-		}
-
-		if intersectDistance > 0 && intersectDistance < smallestDistance {
-			closestPoint = &intersectPoint
-			smallestDistance = intersectDistance
-		}
-	}
-
-	if closestPoint == nil {
-		return nil, nil
-	}
-
-	return closestPoint, &d.colour
+func (d DotAgent) ReceiveRay(rayPosition vector.Vector, rayDirection vector.Vector) (*vector.Vector, *string) {
+	return ray.RecieveRayToCircle(rayPosition, rayDirection, d.position, d.radius, d.colour)
 }
 
 func (d *DotAgent) updateVision() {
-	visionCells := make([]common.VisionCell, 0)
-	for rayAngle := d.velocity.Angle() - (d.sight.Angle / 2); rayAngle < d.velocity.Angle()+(d.sight.Angle/2); rayAngle += math.Pi / 180 {
-		rayEndPosition, rayColour := d.objectManager.SendRay(d.position, vector.Vector{1, 0}.Rotate(rayAngle), []int64{d.GetID()})
-		var visionCell common.VisionCell
+	d.sight.UpdateVision()
+}
 
-		if rayEndPosition == nil || rayEndPosition.Sub(d.position).Magnitude() > d.sight.Distance {
-			visionCell = common.VisionCell{Colour: "#000000", Distance: d.sight.Distance}
-		} else {
-			visionCell = common.VisionCell{Colour: *rayColour, Distance: rayEndPosition.Sub(d.position).Magnitude()}
-		}
-		visionCells = append(visionCells, visionCell)
-	}
-	d.sight.UpdateVision(visionCells)
+func (d *DotAgent) SetObjectManager(objectManager common.ObjectManager) {
+	d.object.SetObjectManager(objectManager)
+	d.sight.SetObjectManager(objectManager)
 }
 
 func (d DotAgent) Draw() {
@@ -89,7 +61,7 @@ func (d DotAgent) Draw() {
 	}
 
 	// Draw dot
-	d.DrawDot()
+	shapes.DrawCircle(d.GetCanvas(), d.position, d.colour, d.radius)
 
 	// Draw orientation pointer
 	d.drawPointer()
@@ -99,41 +71,21 @@ func (d DotAgent) Draw() {
 	}
 }
 
-func (d DotAgent) DrawDot() {
-	cv := d.GetCanvas()
-	cv.SetFillStyle(d.colour)
-	cv.BeginPath()
-	cv.MoveTo(d.position.X(), d.position.Y())
-	cv.Arc(d.position.X(), d.position.Y(), d.radius, 0, 2*math.Pi, false)
-	cv.ClosePath()
-	cv.Fill()
-}
-
 func (d DotAgent) drawPointer() {
-	cv := d.GetCanvas()
-	arrowOffset := d.radius * 1.4
+	arrowOffset := d.radius * 1.6
 	arrowSize := d.radius / 2
 
 	arrowVector := d.velocity.Scale(arrowOffset)
-	perpAngle := d.velocity.Rotate(math.Pi / 2)
-	arrowPosition := d.position.Add(arrowVector)
+	arrowPosition := arrowVector.Add(*d.position)
 
-	cv.BeginPath()
-	cv.MoveTo(arrowPosition.X(), arrowPosition.Y())
-	cv.LineTo(
-		arrowPosition.X()+perpAngle.X()*(arrowSize/2),
-		arrowPosition.Y()+perpAngle.Y()*(arrowSize/2),
+	shapes.DrawIsoscelesTriangle(
+		d.GetCanvas(),
+		&arrowPosition,
+		d.colour,
+		arrowSize,
+		arrowSize,
+		d.velocity.Angle(),
 	)
-	cv.LineTo(
-		d.position.X()+(d.velocity.X()*(arrowOffset+arrowSize)),
-		d.position.Y()+(d.velocity.Y()*(arrowOffset+arrowSize)),
-	)
-	cv.LineTo(
-		arrowPosition.X()-perpAngle.X()*(arrowSize/2),
-		arrowPosition.Y()-perpAngle.Y()*(arrowSize/2),
-	)
-	cv.ClosePath()
-	cv.Fill()
 }
 
 func (d DotAgent) drawAgentMetrics() {
@@ -161,8 +113,8 @@ func (d DotAgent) drawAgentMetrics() {
 func (d DotAgent) drawVision() {
 	cv := d.GetCanvas()
 	for visionIndex, visionCell := range d.sight.GetVisionCells() {
-		currentAngle := d.velocity.Angle() - (d.sight.Angle / 2) + (math.Pi/180)*float64(visionIndex)
-		rayEndPosition := vector.Vector{1, 0}.Rotate(currentAngle).Scale(visionCell.Distance).Add(d.position)
+		currentAngle := d.velocity.Angle() - (d.sight.GetViewAngle() / 2) + (math.Pi/180)*float64(visionIndex)
+		rayEndPosition := vector.Vector{1, 0}.Rotate(currentAngle).Scale(visionCell.Distance).Add(d.GetPosition())
 
 		cv.BeginPath()
 		cv.SetStrokeStyle(visionCell.Colour)
@@ -174,10 +126,6 @@ func (d DotAgent) drawVision() {
 
 func (d DotAgent) String() string {
 	return fmt.Sprintf("Dot Agent(id: %d, position: %v, radius: %f, colour: %s)", d.GetID(), d.GetPosition(), d.radius, d.colour)
-}
-
-func (d DotAgent) ExpandedString() string {
-	return fmt.Sprintf("Dot Agent\n\tid: %d\n\tposition: %v\n\tradius: %f\n\tcolour: %s)", d.GetID(), d.GetPosition(), d.radius, d.colour)
 }
 
 type DotAgentBuilder struct {
@@ -224,26 +172,31 @@ func (dab *DotAgentBuilder) DebugClient(debugClient common.DebugGetter) *DotAgen
 }
 
 func (dab *DotAgentBuilder) Build() *DotAgent {
+	id := createID()
 	if dab.velocity == nil {
 		dab.velocity = vector.Vector{1, 0}
 	}
 
-	if dab.vision.Distance == 0 {
-		dab.vision = common.Sight{
-			Angle:    math.Pi / 3,
-			Distance: 160,
-		}
+	if dab.vision == nil {
+		dab.vision = observe.NewSightBuilder().
+			Angle(math.Pi / 3).
+			Distance(160).
+			ObjectPosition(&dab.position).
+			ObjectVelocity(&dab.velocity).
+			ObjectID(id).
+			Build()
 	}
 
 	return &DotAgent{
-		BaseObject: BaseObject{
-			position:    dab.position,
+		object: object{
+			position:    &dab.position,
 			debugGetter: dab.debugClient,
+			id:          id,
 		},
 		internalState: *agent.NewInternalState(),
 		radius:        dab.radius,
-		colour:        dab.colour,
-		velocity:      dab.velocity,
+		velocity:      &dab.velocity,
 		sight:         dab.vision,
+		colour:        dab.colour,
 	}
 }

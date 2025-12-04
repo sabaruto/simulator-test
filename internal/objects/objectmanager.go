@@ -60,7 +60,6 @@ func (o objectManager) GetObjectsInArea(position vector.Vector, radius float64) 
 	return returnSlice
 }
 
-// TODO: Find a method to find a closest object via a ray of some kind
 func (o objectManager) SendRay(rayPosition vector.Vector, rayDirection vector.Vector, ignoreIDs []int64) (*vector.Vector, *string) {
 	smallestDistance := math.Inf(1)
 	var intersectPoint *vector.Vector

@@ -20,7 +20,6 @@ func main() {
 
 	debugManager := debug.NewDebugManager()
 
-	// objs := animations.CreateTowerAnimation()
 	objs := &[]common.Object{
 		objects.NewDotAgentBuilder().
 			Position(200, 400).

@@ -8,14 +8,14 @@ import (
 )
 
 type Dot struct {
-	BaseObject
+	object
 	radius float64
 }
 
 func NewDot(position vector.Vector, radius float64) *Dot {
 	return &Dot{
-		BaseObject: BaseObject{
-			position: position,
+		object: object{
+			position: &position,
 		},
 
 		radius: radius,

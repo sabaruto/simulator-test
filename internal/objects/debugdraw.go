@@ -7,7 +7,7 @@ import (
 )
 
 type DebugDraw struct {
-	BaseObject
+	object
 }
 
 func (d DebugDraw) Draw() {
